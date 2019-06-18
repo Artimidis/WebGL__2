@@ -1,0 +1,281 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title> EXO TD5 </title>
+    </head>
+
+    <body>
+         <meta charset="UTF-8"> 
+        <script src="js/three.min.js"></script>
+        <script src="js/OrbitControls.js"></script>
+        <script src="js/MTLLoader.js"></script>
+        <script src="js/ColladaLoader.js"></script>
+        <script src='js/THREEx.KeyboardState.js'></script>
+        <script src="js/THREEx.WindowResize.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css">
+
+        <div id="container">
+        <script>            
+            var clock = new THREE.Clock();
+            var clickInfo=[];
+            var count = 0;
+            var objects = [];
+
+            //Caméra
+            var camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1,1000);
+            
+            //Controls
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.set(0, 50, 150);
+            controls.update();
+
+            //Gestion caméra/renderer
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            //Ajouter scene
+            var scene = new THREE.Scene();
+
+            //Création de la sphère
+            var geometry = new THREE.SphereGeometry( 10, 42, 42 );
+            var texture = new THREE.ImageUtils.loadTexture('saturne.jpg');
+            // renderer.setClearColorHex (0x000000,1); //couleur de fond
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set( 1, 1 ); 
+            var material = new THREE.MeshPhongMaterial({map:texture,specular:'#ffffffff',shininess:100 });
+            var sphere = new THREE.Mesh(geometry,material);
+
+            //Placer des spheres aleatoirement
+            for (let i = 0; i < 100; i++) {
+                var sphere = new THREE.Mesh(geometry,material);
+                sphere.position.x = Math.random() * 200;
+                sphere.position.y = Math.random() * 200;
+                sphere.position.z = Math.random() * 200;
+                sphere.rotation.y += 0.02;
+                // sphere.rotation.x = 5
+                scene.add(sphere);       
+            }
+
+            //lumière de la sphere
+            var lumiere1 = new THREE.DirectionalLight(0xffffff, 1.0);
+            lumiere1.position.set (20,5,45);
+            scene.add( sphere);
+            scene.add( lumiere1 );
+            //Lumiere 2
+            var light1 = new THREE.DirectionalLight(0xffffff, 2, 50);
+            scene.add(light1);
+
+            //Clone les spheres pour avoir beaucoup de spheres
+            var sphere2 = sphere.clone();
+            var texture = new THREE.ImageUtils.loadTexture('saturne.jpg');
+            sphere2.position.set(10, 20, 30); 
+            sphere2.rotation.y += 0.02; 
+            sphere2.position.x = Math.random() * 200;
+            sphere2.position.y = Math.random() * 200;
+            sphere2.position.z = Math.random() * 200;
+            scene.add(sphere2); 
+            var sphere3 = sphere2.clone();
+            sphere3.position.x = Math.random() * 200;
+            sphere3.position.y = Math.random() * 200;
+            sphere3.position.z = Math.random() * 200;
+            sphere3.rotation.y += 0.02;  
+            scene.add(sphere3); 
+
+            //Creation des spheres mars
+            var geometry1 = new THREE.SphereGeometry( 10, 42, 42 );
+            var texture2 = new THREE.ImageUtils.loadTexture('mars.jpg');
+            // renderer.setClearColorHex (0x000000,1); //couleur de fond
+            texture2.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture2.repeat.set( 1, 1 ); 
+            var material2 = new THREE.MeshPhongMaterial({map:texture2,specular:'#ffffffff',shininess:100 });
+            var sphere = new THREE.Mesh(geometry1,material2,texture2);
+
+            //cube
+            var geometry_cube = new THREE.CubeGeometry( 40, 40, 40 );
+            var material_cube = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
+            var cube = new THREE.Mesh( geometry_cube, material_cube );
+            cube.position.x = Math.random() * 200;
+            cube.position.y = Math.random() * 200;
+            cube.position.z = Math.random() * 200;
+            scene.add(cube);
+
+            //keyboard
+            var keyboard = new THREEx.KeyboardState();
+            THREEx.KeyboardState.ALIAS  = {
+                'left'      : 37,
+                'up'        : 38,
+                'right'     : 39,
+                'down'      : 40,
+                'space'     : 32,
+                'pageup'    : 33,
+                'pagedown'  : 34,
+                'tab'       : 9
+            };
+                
+
+            //Placer des spheres aleatoirement
+            for (let i = 0; i < 100; i++) {
+                var sphere2 = new THREE.Mesh(geometry1,material2);
+                sphere2.position.x = Math.random() * 200;
+                sphere2.position.y = Math.random() * 200;
+                sphere2.position.z = Math.random() * 200;
+                sphere2.rotation.y += 0.02;
+                // sphere.rotation.x = 5
+                scene.add(sphere2);       
+            }
+
+            //Creation d'un triangle que ce sera la nave spaciale pour manger les planetes
+            //var geometry_triangle = new THREE.Geometry();
+            //geometry_triangle.vertices= [new THREE.Vector3(5,1,2), new THREE.Vector3(1,3,2), new THREE.Vector3(3,4,2)]; 
+            //geometry_triangle.faces = [new THREE.Face3(1,0,2)];
+            //var triangle= new THREE.Mesh( geometry_triangle, new THREE.MeshBasicMaterial({ color: 0xffff00 }) );
+            //scene.add(triangle);
+
+            //Chronometre
+            var startTime = 0
+            var start = 0
+            var end = 0
+            var diff = 0
+            var timerID = 0
+
+            function chrono(){
+                end = new Date()
+                diff = end - start
+                diff = new Date(diff)
+                var msec = diff.getMilliseconds()
+                var sec = diff.getSeconds()
+                var min = diff.getMinutes()
+                var hr = diff.getHours()-1
+                if (min < 10){
+                    min = "0" + min
+                }
+                if (sec < 10){
+                    sec = "0" + sec
+                }
+                if(msec < 10){
+                    msec = "00" +msec
+                }
+                else if(msec < 100){
+                    msec = "0" +msec
+                }
+                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec + ":" + msec
+                timerID = setTimeout("chrono()", 10)
+            }
+            function chronoStart(){
+                document.chronoForm.startstop.value = "stop!"
+                document.chronoForm.startstop.onclick = chronoStop
+                document.chronoForm.reset.onclick = chronoReset
+                start = new Date()
+                chrono()
+            }
+            function chronoContinue(){
+                document.chronoForm.startstop.value = "stop!"
+                document.chronoForm.startstop.onclick = chronoStop
+                document.chronoForm.reset.onclick = chronoReset
+                start = new Date()-diff
+                start = new Date(start)
+                chrono()
+            }
+            function chronoReset(){
+                document.getElementById("chronotime").innerHTML = "0:00:00:000"
+                start = new Date()
+            }
+            function chronoStopReset(){
+                document.getElementById("chronotime").innerHTML = "0:00:00:000"
+                document.chronoForm.startstop.onclick = chronoStart
+            }
+            function chronoStop(){
+                document.chronoForm.startstop.value = "start!"
+                document.chronoForm.startstop.onclick = chronoContinue
+                document.chronoForm.reset.onclick = chronoStopReset
+                clearTimeout(timerID)
+            }
+            objects.push(sphere);
+
+            
+            animate();
+            controls = new THREE.OrbitControls(camera,renderer.domElement);
+
+            //click
+            var raycaster = new THREE.Raycaster();
+            var mouse = new THREE.Vector2();
+            // RAFFOU
+
+            function onMouseMove( event ) {
+
+                // calculate mouse position in normalized device coordinates
+                // (-1 to +1) for both components
+
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+            }
+            
+
+            addEventListener('click', function() {
+                // raycaster = new THREE.Raycaster();
+                // mouse = new THREE.Vector2();
+
+                // update the picking ray with the camera and mouse position
+                    raycaster.setFromCamera( mouse, camera );
+
+                    // calculate objects intersecting the picking ray
+                    var intersects = raycaster.intersectObjects( scene.children );
+
+                    for ( var i = 0; i < intersects.length; i++ ) {
+
+                        intersects[ i ].object.material.color.set( 0xff0000 );
+
+                    }
+                })
+
+
+            function animate(){
+
+            //keyboard
+            if (keyboard.pressed("left") ){ 
+                    cube.translateX(-10);
+                }
+
+                if (keyboard.pressed("right") ){ 
+                    cube.translateX(10);
+                }
+
+                if (keyboard.pressed("up") ){ 
+                    cube.translateZ(-10);
+                }
+
+                if (keyboard.pressed("down") ){ 
+                    cube.translateZ(10);
+                }
+            sphere.rotation.y += 0.02;
+            sphere2.rotation.y += 0.02;
+            sphere3.rotation.y += 0.02;
+            var time = Date.now() * 0.0005;
+            var delta = clock.getDelta();
+            light1.position.x = Math.sin( time * 0.7 ) * 30;
+            light1.position.y = Math.cos( time * 0.5 ) * 40;
+            light1.position.z = Math.cos( time * 0.3 ) * 30;
+            renderer.render(scene, camera);
+            controls.update();
+
+
+            requestAnimationFrame(function(){ 
+
+                animate();
+            });
+            };
+            window.addEventListener( 'mousemove', onMouseMove, false );
+
+    </script>
+    <div class="chrono">
+    <span id="chronotime">0:00:00:00</span>
+            <form name="chronoForm">
+                <input type="button" name="startstop" value="Start!" onClick="chronoStart()" />
+                <input type="button" name="reset" value="Reset!" onClick="chronoReset()" />
+            </form>
+    </div>
+    </div>
+    </body>
+</html>
